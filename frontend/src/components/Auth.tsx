@@ -22,7 +22,7 @@ const Auth = ({ type }: { type: "signup" | "signin" }) => {
       );
       const jwt = res.data.jwt;
       localStorage.setItem("token", jwt);
-      navigate("/blog");
+      navigate("/blogs");
     } catch (error) {
       console.log(error);
     }
