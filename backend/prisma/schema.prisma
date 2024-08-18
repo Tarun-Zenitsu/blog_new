@@ -22,12 +22,26 @@ model User {
   blogs    Blog[]
 }
 
+// model Blog {
+//   id        String   @id @default(uuid())
+//   authorId  String
+//   content   String
+//   title     String
+//   published Boolean  @default(false)
+//   createdAt DateTime @default(now()) 
+//   updatedAt DateTime @updatedAt      
+//   author    User     @relation(fields: [authorId], references: [id])
+// }
 
 model Blog {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   authorId  String
   content   String
   title     String
-  published Boolean @default(false)
-  author    User   @relation(fields: [authorId], references: [id])
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+
 }
+

@@ -116,6 +116,7 @@ blogRouter.get("/bulk", async (c) => {
         content: true,
         title: true,
         id: true,
+        createdAt: true, // Include createdAt in the response
         author: {
           select: {
             name: true,
@@ -136,18 +137,29 @@ blogRouter.get("/bulk", async (c) => {
   }
 });
 
-// Get a specific blog post
 blogRouter.get("/:id", async (c) => {
   const id = c.req.param("id");
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
+
   try {
     const blog = await prisma.blog.findFirst({
       where: {
         id,
       },
+      select: {
+        content: true,
+        title: true,
+        createdAt: true, // Include createdAt in the response
+        author: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
+
     if (blog) {
       return c.json({ success: true, blog });
     } else {
@@ -157,6 +169,39 @@ blogRouter.get("/:id", async (c) => {
   } catch (error) {
     c.status(500);
     return c.json({ success: false, message: "Failed to fetch blog" });
+  }
+});
+
+blogRouter.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const userId = c.get("jwtPayload"); // Get the user ID from the JWT token
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  try {
+    // Find the blog post and check if the user is the author
+    const blog = await prisma.blog.findFirst({
+      where: { id, authorId: userId }, // Check if the user is the author
+    });
+
+    if (!blog) {
+      c.status(404);
+      return c.json({
+        success: false,
+        message: "Blog not found or not authorized to delete",
+      });
+    }
+
+    // Delete the blog post
+    await prisma.blog.delete({
+      where: { id },
+    });
+
+    return c.json({ success: true, message: "Blog deleted successfully" });
+  } catch (error) {
+    c.status(500);
+    return c.json({ success: false, message: "Failed to delete blog" });
   }
 });
 
